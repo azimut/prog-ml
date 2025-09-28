@@ -6,3 +6,4 @@ Code for the [Programming Machine Learning](https://pragprog.com/titles/pplearn/
 
 - I want to more actively learn this.
 - I want to blast my dumb algorithms against a GPU at some point.
+- Book makes a special emphasis on "keeping in mind the dimensionality of the data matrices" when working throught the examples.
