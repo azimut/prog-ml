@@ -3,5 +3,5 @@ build/%: %.fut
 	futhark c $< -o $@
 
 .PHONY: all
-all: build/04b.dimensions_bias
-	time ./$< < data/pizza_3_vars_fix.txt
+all: build/05.sigmoid
+	time ./$< < data/police_fix.txt

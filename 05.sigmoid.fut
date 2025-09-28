@@ -1,0 +1,34 @@
+import "utils"
+
+def sigmoid [n] [m] (A: [n][m]f64) : [n][m]f64 =
+  matunary ((0 -) >-> f64.exp >-> (1 +) >-> (1 /)) A
+
+-- predict(), ran on training
+def forward [n] [m] (feats: [n][m]f64) (weights: [m][1]f64) : [n][1]f64 =
+  sigmoid (matmul feats weights)
+
+-- predict(), ran on classification
+def classify [n] [m] (feats: [n][m]f64) (weights: [m][1]f64) : [n][1]f64 =
+  matunary (f64.round) (forward feats weights)
+
+def loss [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f64 =
+  let y_hat = forward feats weights
+  let first_term = matop (*) truths (matunary (f64.log) y_hat)
+  let second_term = matop (*) (matunary (1 -) truths) (matunary (f64.log) y_hat)
+  in matadd first_term second_term |> flatten |> average |> f64.neg
+
+-- return np.matmul(X.T, (forward(X,w) - Y)) / X.shape[0]
+def gradient [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : [m][1]f64 =
+  truths
+  |> matsub (forward feats weights)
+  |> matmul (transpose feats)
+  |> (\xss -> matsdiv xss (f64.i64 n))
+
+def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (lrate: f64) : [m][1]f64 =
+  loop weights: [m][1]f64 = unflatten ((replicate m 0.0) :> [m * 1]f64)
+  for _i < iterations do
+    matsub weights (matsmul (gradient features truths weights) lrate)
+
+def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [1 + m][1]f64 =
+  let with_bias = transpose ([(replicate n 1.0)] ++ (transpose features))
+  in train with_bias pizzas 100000 0.001
