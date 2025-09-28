@@ -5,3 +5,6 @@ build/%: %.fut
 .PHONY: all
 all: build/05.sigmoid
 	time ./$< < data/police_fix.txt
+
+.PHONY: clean
+clean:; rm -vrf ./*.c ./*.actual ./*.expected ./build/*
