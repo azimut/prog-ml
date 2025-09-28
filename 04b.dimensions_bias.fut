@@ -9,8 +9,6 @@ def loss [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) 
   |> map (** 2)
   |> average
 
--- def gradient(X,Y,w): # no change
---     return 2 * np.matmul(X.T, (predict(X,w)-Y)) / X.shape[0]
 def gradient [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : [m][1]f64 =
   matmul (transpose features) (matsub (predict features weights) truths)
   |> (\xss -> matsmul xss 2)
@@ -21,5 +19,6 @@ def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (l
   for _i < iterations do
     matsub weights (matsmul (gradient features truths weights) lrate)
 
-def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [m][1]f64 =
-  train features pizzas 100000 0.001
+def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [1 + m][1]f64 =
+  let with_bias = transpose ([(replicate n 1.0)] ++ (transpose features))
+  in train with_bias pizzas 100000 0.001
