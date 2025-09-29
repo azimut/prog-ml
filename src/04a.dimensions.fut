@@ -1,13 +1,10 @@
 import "utils"
-import "../data/pizza_3_vars_fix"
+
+def features : [30][3]f64 = [[13.0, 26, 9], [2, 14, 6], [14, 20, 3], [23, 25, 9], [13, 24, 8], [1, 12, 2], [18, 23, 9], [10, 18, 10], [26, 24, 3], [3, 14, 1], [3, 12, 3], [21, 27, 5], [7, 17, 3], [22, 21, 1], [2, 12, 4], [27, 26, 2], [6, 15, 4], [10, 21, 7], [18, 18, 3], [15, 26, 8], [9, 20, 6], [26, 25, 9], [8, 21, 10], [15, 22, 7], [10, 20, 2], [21, 21, 1], [5, 12, 7], [6, 14, 9], [13, 19, 4], [13, 20, 3]]
+
+def truths : [30][1]f64 = [[44.0], [23], [28], [60], [42], [5], [51], [44], [42], [9], [14], [43], [22], [34], [16], [46], [26], [33], [29], [43], [37], [62], [47], [38], [22], [29], [34], [38], [30], [28]]
 
 def predict = matmul
-
-def loss [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f64 =
-  matsub (predict features weights) truths
-  |> matunary (** 2)
-  |> flatten
-  |> average
 
 def gradient [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : [m][1]f64 =
   matsub (predict features weights) truths
@@ -39,6 +36,16 @@ def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [][]f64 =
 -- output { [[ 0.25032208429987246 ],[ 1.5632873204761812 ]] }
 -- compiled input @ data/pizza_3_vars_fix.txt
 -- output { [[ 1.1655612622487832  ],[ 0.14250111584252093 ],[ 3.099359590851483 ]] }
+
+-- ## Loss
+
+def loss [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f64 =
+  matsub (predict features weights) truths
+  |> matunary (** 2)
+  |> flatten
+  |> average
+
+-- ## Plots
 
 def pxys = (iota (length (flatten truths)), predict features (train features truths 10000 0.001) |> flatten)
 def txys = (iota (length (flatten truths)), truths |> flatten)

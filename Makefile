@@ -1,6 +1,7 @@
-.PHONY: all
-all: build/04a.dimensions
-	time ./$< < data/pizza_3_vars_fix.txt
+SRCS = $(wildcard src/0*.fut)
+
+.PHONY: literate
+literate: $(patsubst %.fut,%.md,$(notdir $(SRCS)))
 
 %.md: src/%.fut
 	cp $< .
@@ -9,7 +10,7 @@ all: build/04a.dimensions
 	sed -i '/^!/s|(|(media/|' $@
 	mkdir -p media/
 	rm -rf ./media/$(*)-img
-	mv $(*)-img/ media/
+	-mv $(*)-img/ media/
 
 build/%: src/%.fut
 	@mkdir -p $(@D)

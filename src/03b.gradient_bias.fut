@@ -7,12 +7,6 @@ def pizzas : [30]f64 = [33.0, 16, 32, 51, 27, 16, 34, 17, 29, 15, 15, 32, 22, 37
 def predict [n] (feats: [n]f64) (weight: f64) (bias: f64) : [n]f64 =
   map (\x -> x * weight + bias) feats
 
-def loss (feats: []f64) (truths: []f64) (weight: f64) (bias: f64) : f64 =
-  predict feats weight bias
-  |> map2 (-) truths
-  |> map (** 2)
-  |> average
-
 def gradient [n] (feats: [n]f64) (truths: [n]f64) (weight: f64) (bias: f64) : (f64, f64) =
   let predictions = predict feats weight bias
   let predict_minus_truth = map2 (-) predictions truths
@@ -31,7 +25,15 @@ def train [n] (feats: [n]f64) (truths: [n]f64) (iters: i64) (lrate: f64) : (f64,
 def main [n] (reservations: [n]f64) (pizzas: [n]f64) : (f64, f64) =
   train reservations pizzas 20000 0.001
 
--- End of chapter's code. Start of plotting code.
+-- ## Loss
+
+def loss (feats: []f64) (truths: []f64) (weight: f64) (bias: f64) : f64 =
+  predict feats weight bias
+  |> map2 (-) truths
+  |> map (** 2)
+  |> average
+
+-- ## Plots
 
 -- > train features pizzas 20000 0.001
 

@@ -22,7 +22,7 @@ def train [n] (feats: [n]f64) (truths: [n]f64) (iters: i64) (lrate: f64) : f64 =
 def main [n] (reservations: [n]f64) (pizzas: [n]f64) : f64 =
   train reservations pizzas 1000 0.001
 
--- End of chapter's code. Start of plotting code.
+-- ## Plots
 
 -- > train features pizzas 1000 0.001
 

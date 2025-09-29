@@ -28,7 +28,7 @@ def train (feats: []f64) (truths: []f64) (iters: i64) (lrate: f64) : (i64, f64) 
 def main [n] (reservations: [n]f64) (pizzas: [n]f64) : (i64, f64) =
   train reservations pizzas 10000 0.001
 
--- Plots
+-- ## Plots
 
 -- > train features pizzas 10000 0.001
 
