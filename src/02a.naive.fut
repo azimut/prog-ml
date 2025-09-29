@@ -36,9 +36,9 @@ def xys = (features, pizzas)
 
 -- > :gnuplot { input=xys };
 -- weight = 1.8439999999999077
--- set title sprintf("f(x) = %.3f * x + 0", weight)
--- unset border; set grid; set monochrome; unset key;
+-- set title "02a.naive.fut"
+-- unset border; set grid; set monochrome; set key bottom right;
 -- set yrange [0:*]
 -- set xlabel "reservations"; set ylabel "pizzas";
 -- f(x) = weight * x + 0
--- plot input w p pt 3, f(x)
+-- plot input w p pt 3 title "", f(x) title sprintf("f(x) = %.3f * x + 0", weight)

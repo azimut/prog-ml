@@ -1,5 +1,5 @@
 import "utils"
-import "data/pizza_3_vars_fix"
+import "../data/pizza_3_vars_fix"
 
 def predict = matmul
 

@@ -38,9 +38,9 @@ def xys = (features, pizzas)
 
 -- > :gnuplot { input=xys };
 -- weight = 1.1000000000000008; bias = 12.929999999999769;
--- set title sprintf("f(x) = %.3f * x + %.3f", weight, bias)
--- unset border; set grid; set monochrome; unset key;
+-- set title "02b.naive\\_bias.fut"
+-- unset border; set grid; set monochrome; set key bottom right;
 -- set yrange [0:*]
 -- set xlabel "reservations"; set ylabel "pizzas";
 -- f(x) = weight * x + bias
--- plot input w p pt 3, f(x)
+-- plot input w p pt 3 title "", f(x) title sprintf("f(x) = %.3f * x + %.3f", weight, bias)
