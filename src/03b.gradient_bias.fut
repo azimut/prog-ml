@@ -51,4 +51,5 @@ def wxs = linspace 200 (-1.0) 4.0
 def wxys = (wxs, loop losses = [] for i < (length wxs) do (losses ++ [(loss features pizzas wxs[i] 0.0)]))
 
 -- Losses (y-axis) over weights (x-axis). With 0 bias.
+
 -- > :plot2d wxys
