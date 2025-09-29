@@ -3,6 +3,9 @@ SRCS = $(wildcard src/0*.fut)
 .PHONY: literate
 literate: $(patsubst %.fut,%.md,$(notdir $(SRCS)))
 
+media/%.png: media/%.gp
+	GNUTERM='pngcairo size 800,600' gnuplot $< > $@
+
 %.md: src/%.fut
 	cp $< .
 	futhark literate -v --stop-on-error $(<F)
