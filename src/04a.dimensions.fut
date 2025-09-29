@@ -40,17 +40,6 @@ def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [][]f64 =
 -- compiled input @ data/pizza_3_vars_fix.txt
 -- output { [[ 1.1655612622487832  ],[ 0.14250111584252093 ],[ 3.099359590851483 ]] }
 
-def train_plot [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (lrate: f64) : ([]f64, []f64) =
-  let (_, ret) =
-    loop (weights, xys) = (init_weights m, ([], []))
-    for i < iterations do
-      let new_weight = gradient features truths weights |> matunary (* lrate)
-      let new_loss = loss features truths new_weight
-      in ( (matsub weights new_weight)
-         , (xys.0 ++ [f64.i64 i], xys.1 ++ [new_loss])
-         )
-  in ret
-
 def pxys = (iota (length (flatten truths)), predict features (train features truths 10000 0.001) |> flatten)
 def txys = (iota (length (flatten truths)), truths |> flatten)
 

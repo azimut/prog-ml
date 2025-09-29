@@ -36,8 +36,6 @@ def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [1 + m][1]f64 =
 -- compiled input @ data/pizza_3_vars_fix.txt
 -- output { [[ 2.411782066212325 ], [ 1.2336839595970703 ],[ -2.689984182418442e-2 ],[ 3.1246055774095582 ] ] }
 
--- Plots
-
 def pxys = (iota (length (flatten truths)), predict (add_bias features) (train (add_bias features) truths 10000 0.001) |> flatten)
 def txys = (iota (length (flatten truths)), truths |> flatten)
 
