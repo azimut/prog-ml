@@ -1,6 +1,6 @@
 # prog-ml
 
-Code for the [Programming Machine Learning](https://pragprog.com/titles/pplearn/programming-machine-learning/) book, redone in [futhark](https://futhark-lang.org/).
+Code for the ["Programming Machine Learning"](https://pragprog.com/titles/pplearn/programming-machine-learning/) book, redone in [futhark](https://futhark-lang.org/). Check out author's original code [here](https://github.com/nusco/progml-code).
 
 ## Why?
 
