@@ -84,23 +84,26 @@ def train_history [n] (feats: [n]f64) (truths: [n]f64) (iters: i64) (lrate: f64)
 -- > train_history features pizzas 10000 0.001
 
 def history = train_history features pizzas 10000 0.001
-def sxw = linspace 80 history[1] history[2]
-def syb = linspace 80 history[4] history[5]
-def szl = loop losses = [] for i < 80 do losses ++ [(loss features pizzas sxw[i] syb[i])]
+def sxw = linspace 100 history[1] history[2]
+def syb = linspace 100 history[4] history[5]
+def szl = loop losses = [] for i < 100 do losses ++ [(loss features pizzas sxw[i] syb[i])]
 
 def sxyz = (sxw, syb, szl)
 
 -- > :gnuplot { sxyz=sxyz };
 -- set terminal pngcairo size 720,720
+-- set tics nomirror font ",8" scale 0
 -- set size square
 -- set multiplot layout 2,2
+-- set label font ",10"
 -- set xlabel "Weight"; set ylabel "Bias"; set zlabel "Loss";
+-- set xyplane 0
 -- unset border
+-- set monochrome
 -- set grid
 -- set hidden3d
--- set dgrid3d 20,20
--- set monochrome
--- set view 50,30   ,1.3,1.3; splot sxyz u 1:2:3 w l notitle
--- set view 50,130 ,1.3,1.3; splot sxyz u 1:2:3 w l notitle
--- set view 80,30   ,1.3,1.3; splot sxyz u 1:2:3 w l notitle
--- set view 100,130 ,1.3,1.3; splot sxyz u 1:2:3 w l notitle
+-- set dgrid3d 25,25
+-- set view 50,30   ,1.2,1.2; splot sxyz u 1:2:3 w l notitle
+-- set view 50,130  ,1.2,1.2; splot sxyz u 1:2:3 w l notitle
+-- set view 80,30   ,1.2,1.2; splot sxyz u 1:2:3 w l notitle
+-- set view 100,130 ,1.2,1.2; splot sxyz u 1:2:3 w l notitle
