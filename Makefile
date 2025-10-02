@@ -6,7 +6,7 @@ literate: $(patsubst %.fut,%.md,$(notdir $(SRCS)))
 media/%.png: media/%.gp
 	GNUTERM='pngcairo size 800,600' gnuplot $< > $@
 
-%.md: src/%.fut
+%.md: src/%.fut utils.fut
 	cp $< .
 	futhark literate -v --stop-on-error $(<F)
 	rm -f $*.fut $*.c $*
@@ -18,6 +18,8 @@ media/%.png: media/%.gp
 build/%: src/%.fut
 	@mkdir -p $(@D)
 	futhark c $< -o $@
+
+utils.fut: src/utils.fut; ln -s $< $@
 
 .PHONY: clean
 clean:; rm -vrf ./*.fut ./*.c ./*.actual ./*.expected ./build/*

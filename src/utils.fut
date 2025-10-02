@@ -21,3 +21,10 @@ def matop [n] [m] (op: f64 -> f64 -> f64) (A: [n][m]f64) (B: [n][m]f64) : [n][m]
 
 def matadd = matop (+)
 def matsub = matop (-)
+
+def linspace (n: i64) (start: f64) (end: f64) : [n]f64 =
+  tabulate n (\i -> start + f64.i64 i * ((end - start) / f64.i64 n))
+
+def linspace_2d n start1 end1 start2 end2 : [n][n](f64, f64) =
+  map (\x -> map (\y -> (x, y)) (linspace n start2 end2))
+      (linspace n start1 end1)

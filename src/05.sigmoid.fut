@@ -1,5 +1,10 @@
 import "utils"
 
+def features : [30][3]f64 = [[13, 26, 9], [2, 14, 6], [14, 20, 3], [23, 25, 9], [13, 24, 8], [1, 13, 2], [18, 23, 9], [10, 18, 10], [26, 24, 3], [3, 14, 1], [3, 12, 3], [21, 27, 5], [7, 17, 3], [22, 21, 1], [2, 14, 4], [27, 26, 2], [6, 15, 4], [10, 21, 7], [18, 18, 3], [15, 26, 8], [9, 20, 6], [26, 25, 9], [8, 21, 10], [15, 22, 7], [10, 20, 2], [21, 21, 1], [5, 12, 7], [6, 14, 9], [13, 19, 4], [13, 20, 3]]
+
+def truths : [30][1]f64 = [[1], [0], [1], [1], [1], [0], [1], [1], [1], [0], [0], [1], [0], [1], [0], [1], [0], [0], [0], [1], [0], [1], [0], [1], [0], [1], [0], [0], [1], [0]]
+
+-- 1 / (1 + np.exp(-z))
 def sigmoid [n] [m] (A: [n][m]f64) : [n][m]f64 =
   matunary ((0 -) >-> f64.exp >-> (1 +) >-> (1 /)) A
 
@@ -11,24 +16,124 @@ def forward [n] [m] (feats: [n][m]f64) (weights: [m][1]f64) : [n][1]f64 =
 def classify [n] [m] (feats: [n][m]f64) (weights: [m][1]f64) : [n][1]f64 =
   matunary (f64.round) (forward feats weights)
 
+def gradient [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : [m][1]f64 =
+  matsub (forward feats weights) truths
+  |> matmul (transpose feats)
+  |> matunary (/ (f64.i64 n))
+
+def init_weights (m: i64) : [m][1]f64 =
+  unflatten ((replicate m 0.0) :> [m * 1]f64)
+
+def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (lrate: f64) : [m][1]f64 =
+  loop weights = init_weights m
+  for _i < iterations do
+    matsub weights (matsmul (gradient features truths weights) lrate)
+
+def add_bias [n] [m] (features: [n][m]f64) : [n][1 + m]f64 =
+  transpose ([(replicate n 1.0)] ++ (transpose features))
+
+def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [1 + m][1]f64 =
+  train (add_bias features) pizzas 100000 0.001
+
+-- > main features truths
+
+-- ## Loss functions
+
+def mse_loss [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f64 =
+  matsub (forward features weights) truths
+  |> matunary (** 2)
+  |> flatten
+  |> average
+
 def loss [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f64 =
   let y_hat = forward feats weights
   let first_term = matop (*) truths (matunary (f64.log) y_hat)
   let second_term = matop (*) (matunary (1 -) truths) (matunary (f64.log) y_hat)
   in matadd first_term second_term |> flatten |> average |> f64.neg
 
--- return np.matmul(X.T, (forward(X,w) - Y)) / X.shape[0]
-def gradient [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : [m][1]f64 =
-  truths
-  |> matsub (forward feats weights)
-  |> matmul (transpose feats)
-  |> (\xss -> matsdiv xss (f64.i64 n))
+-- ## Plots
 
-def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (lrate: f64) : [m][1]f64 =
-  loop weights: [m][1]f64 = unflatten ((replicate m 0.0) :> [m * 1]f64)
-  for _i < iterations do
-    matsub weights (matsmul (gradient features truths weights) lrate)
+def xs = iota (length (flatten truths))
+def pxys = (xs, forward (add_bias features) (train (add_bias features) truths 10000 0.001) |> flatten)
+def txys = (xs, truths |> flatten)
 
-def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [1 + m][1]f64 =
-  let with_bias = transpose ([(replicate n 1.0)] ++ (transpose features))
-  in train with_bias pizzas 100000 0.001
+-- > :gnuplot { reality=txys , prediction=pxys };
+-- set title "05.sigmoid.fut - Predictions vs Reality"
+-- set yrange [-0.5:1.5]
+-- set monochrome; unset border; set grid
+-- plot reality with points pt 2, prediction with points pt 3
+
+-- New version of **train**, to get the min and max bounds of it's weights
+
+type measure = {current: f64, max: f64, min: f64}
+
+def new_measure : measure = {current = 0.0, min = 1000000, max = -1000000}
+
+def update_measure (new: f64) (measure: measure) : measure =
+  let new_max = f64.max new measure.max
+  let new_min = f64.min new measure.min
+  in {current = new, max = new_max, min = new_min}
+
+def train_history [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (iters: i64) (lrate: f64) : [6]f64 =
+  let (w1, w2, _) =
+    loop (weight1, weight2, weights) = (new_measure, new_measure, init_weights m)
+    for _i < iters do
+      let new_weights = matsub weights (matunary (* lrate) (gradient feats truths weights))
+      let new1 = update_measure weights[0][0] weight1
+      let new2 = update_measure weights[1][0] weight2
+      in (new1, new2, new_weights)
+  in [w1.current, w1.min, w1.max, w2.current, w2.min, w2.max]
+
+-- NOTE: futhark-literate can't show records (?
+
+-- > train_history features truths 10000 0.001
+
+def history = train_history (add_bias features) truths 100000 0.001
+def margin : f64 = 5.0
+def meshgrid = linspace_2d 20 (history[1] - margin) (history[2] + margin) (history[4] - margin) (history[5] + margin)
+def sxw = meshgrid |> flatten |> map (.0)
+def syb = meshgrid |> flatten |> map (.1)
+
+def szl =
+  let f (x, y) = mse_loss features truths [[x], [y], [1]]
+  in map (map f) meshgrid |> flatten
+
+def sxyz = (sxw, syb, szl)
+
+-- On the book, a fictional random dataset is plot to show the differences between loss functions.
+-- https://github.com/nusco/progml-code/blob/main/05_discerning/plot_losses.py
+-- Here, I use our dataset to show the loss
+
+-- > :gnuplot { sxyz=sxyz };
+-- set terminal pngcairo size 720,720
+-- set size square
+-- set multiplot layout 2,2 title "binary classification with mse\\_loss"
+-- set tics nomirror font ",8" scale 0
+-- set label font ",10"; set xlabel "w_1"; set ylabel "w_2"; set zlabel "Loss";
+-- unset border; unset key
+-- set dgrid3d 20,20; set xyplane at 0; set hidden3d; unset colorbox; set grid
+-- set monochrome
+-- set view  50, 60 ,1.2,1.2; splot sxyz u 1:2:3 w l
+-- set view  50,130 ,1.2,1.2; splot sxyz u 1:2:3 w l
+-- set view  50, 30 ,1.2,1.2; splot sxyz u 1:2:3 w l
+-- set view  80,250 ,1.2,1.2; splot sxyz u 1:2:3 w l
+
+def szl2 =
+  let f (x, y) = loss features truths [[x], [y], [1]]
+  in map (map f) meshgrid |> flatten
+
+def sxyz2 = (sxw, syb, szl2)
+
+-- > :gnuplot { sxyz=sxyz2 };
+-- set terminal pngcairo size 720,720
+-- set size square
+-- set multiplot layout 2,2 title "binary classification with log\\_loss"
+-- set tics nomirror font ",8" scale 0
+-- set label font ",10"; set xlabel "w_1"; set ylabel "w_2"; set zlabel "Loss";
+-- unset border; unset key
+-- set dgrid3d 20,20; set xyplane at 0; set hidden3d; unset colorbox; set grid
+-- set monochrome
+-- set view  50, 60 ,1.2,1.2; splot sxyz u 1:2:3 w l
+-- set view  50,130 ,1.2,1.2; splot sxyz u 1:2:3 w l
+-- set view  50, 30 ,1.2,1.2; splot sxyz u 1:2:3 w l
+-- set view  80,250 ,1.2,1.2; splot sxyz u 1:2:3 w l
