@@ -32,9 +32,9 @@ def main [n] [m] (features: [n][m]f64) (pizzas: [n][1]f64) : [][]f64 =
 -- With iters=100000 lrate=0.001
 -- ==
 -- entry: test
--- compiled input @ data/pizza_2_vars_fix.txt
+-- compiled input @ ../data/pizza_2_vars_fix.txt
 -- output { [[ 0.25032208429987246 ],[ 1.5632873204761812 ]] }
--- compiled input @ data/pizza_3_vars_fix.txt
+-- compiled input @ ../data/pizza_3_vars_fix.txt
 -- output { [[ 1.1655612622487832  ],[ 0.14250111584252093 ],[ 3.099359590851483 ]] }
 
 -- ## Loss
@@ -56,3 +56,5 @@ def txys = (iota (length (flatten truths)), truths |> flatten)
 -- unset border
 -- set grid
 -- plot truth with points pt 2, prediction with points pt 3
+
+-- > train features truths 100000 0.001

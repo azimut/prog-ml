@@ -38,9 +38,9 @@ def loss [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) 
 
 -- With iters=100000 lrate=0.001
 -- ==
--- compiled input @ data/pizza_2_vars_fix.txt
+-- compiled input @ ../data/pizza_2_vars_fix.txt
 -- output { [[ 2.98247247396205 ],[ 0.32762407248591 ], [ 1.366766794723273 ] ] }
--- compiled input @ data/pizza_3_vars_fix.txt
+-- compiled input @ ../data/pizza_3_vars_fix.txt
 -- output { [[ 2.411782066212325 ], [ 1.2336839595970703 ],[ -2.689984182418442e-2 ],[ 3.1246055774095582 ] ] }
 
 def pxys = (iota (length (flatten truths)), predict (add_bias features) (train (add_bias features) truths 10000 0.001) |> flatten)
