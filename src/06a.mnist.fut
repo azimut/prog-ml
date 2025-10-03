@@ -43,10 +43,13 @@ def gradient [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64)
 def init_weights (m: i64) : [m][1]f64 =
   unflatten ((replicate m 0.0) :> [m * 1]f64)
 
+def train_step [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (lrate: f64) (weights: [m][1]f64) : [m][1]f64 =
+  matsub weights (matsmul (gradient features truths weights) lrate)
+
 def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (lrate: f64) : [m][1]f64 =
   loop weights = init_weights m
   for _i < iterations do
-    matsub weights (matsmul (gradient features truths weights) lrate)
+    train_step features truths lrate weights
 
 -- We are going to only look to identify 5's
 
@@ -81,6 +84,17 @@ def draw_weights (features: [][]f64) (labels: [][1]f64) : [][]f64 =
   in unflatten ((map ((interpolate min_weight max_weight 0 1) >-> (1 -)) fweights[1:]) :> [28 * 28]f64)
 
 -- > :img draw_weights (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
+
+def animate_weights (features: [][]f64) (labels: [][1]f64) (lrate: f64) (weights: [][1]f64) : ([][]f64, [][1]f64) =
+  let fweights = flatten weights
+  let min_weight = -2.4176444437863176e-4f64
+  let max_weight = 2.710347504252503e-6f64
+  let image = unflatten ((map ((interpolate min_weight max_weight 0 1) >-> (1 -)) fweights[1:]) :> [28 * 28]f64)
+  in (image, train_step features labels lrate weights)
+
+-- > :video (animate_weights (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte"))) 1e-5, init_weights 785i64, 100i64);
+-- fps: 24
+-- format: webm
 
 --
 -- ==
