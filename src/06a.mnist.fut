@@ -1,3 +1,5 @@
+-- ## Parsing MNIST
+
 def parse_field (xs: []u8) : i64 =
   (i64.u8 xs[0] << 24) + (i64.u8 xs[1] << 16) + (i64.u8 xs[2] << 8) + (i64.u8 xs[3] << 0)
 
@@ -8,22 +10,31 @@ def parse_labels (xs: []u8) : (i64, []u8) =
   let (_, n_labels, _, _) = parse_header xs
   in (n_labels, xs[8:])
 
-def parse_images (xs: []u8) : (i64, i64, i64, [][]u8) =
+def parse_images (xs: []u8) : (i64, i64, i64, [][]f64) =
   let (_, n_imgs, n_rows, n_cols) = parse_header xs
   let n_pixels = n_rows * n_cols
-  in (n_imgs, n_rows, n_cols, unflatten (xs[16:] :> [n_imgs * n_pixels]u8))
+  let pixels = map (\x -> f64.u8 x / 255) xs[16:]
+  in (n_imgs, n_rows, n_cols, unflatten (pixels :> [n_imgs * n_pixels]f64))
 
-def get_nth_image (n: i64) (data: (i64, i64, i64, [][]u8)) : [][]u8 =
+def get_nth_image (n: i64) (data: (i64, i64, i64, [][]f64)) : [][]f64 =
   let (_, n_rows, n_cols, pixels) = data
-  in unflatten (pixels[n] :> [n_rows * n_cols]u8)
+  in unflatten (pixels[n] :> [n_rows * n_cols]f64)
 
 def get_nth_label (n: i64) (data: (i64, []u8)) : u8 =
   let (_, labels) = data
-  in head (drop (n - 1) labels)
+  in head (drop n labels)
 
--- > :img get_nth_image 1000 (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))
+-- > :img get_nth_image 23 (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))
 
--- > get_nth_label 1000 (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte"))
+-- > get_nth_label 23 (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte"))
+
+-- ## Training
+
+def encode_labels (labels: []u8) : []u8 =
+  map (\n -> if n == 5 then 1 else 0) labels
+
+def add_bias [n] [m] (images: [n][m]f64) : [n][1 + m]f64 =
+  ([replicate n 1.0] ++ (transpose images)) |> transpose
 
 --
 -- ==
