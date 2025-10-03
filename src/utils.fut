@@ -28,3 +28,6 @@ def linspace (n: i64) (start: f64) (end: f64) : [n]f64 =
 def linspace_2d n start1 end1 start2 end2 : [n][n](f64, f64) =
   map (\x -> map (\y -> (x, y)) (linspace n start2 end2))
       (linspace n start1 end1)
+
+def interpolate (istart: f64) (iend: f64) (ostart: f64) (oend: f64) (n: f64) : f64 =
+  ostart + ((n - istart) / (iend - istart)) * (oend - ostart)
