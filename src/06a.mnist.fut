@@ -94,7 +94,7 @@ def animate_weights (features: [][]f64) (labels: [][1]f64) (lrate: f64) (weights
 
 -- > :video (animate_weights (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte"))) 1e-5, init_weights 785i64, 100i64);
 -- fps: 24
--- format: webm
+-- format: gif
 
 --
 -- ==
