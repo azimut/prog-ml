@@ -109,13 +109,16 @@ def predictability [m]
                    (train_features: [][m]f64)
                    (train_labels: [][1]f64)
                    (test_features: [][m]f64)
-                   (test_labels: [][1]f64) : f64 =
-  let weights = train train_features train_labels 100 1e-5
+                   (test_labels: [][1]f64)
+                   (iterations: i64) : []f64 =
+  let weights = train train_features train_labels iterations 0.001
   let predictions = classify test_features weights
-  let ncorrect = f64.sum (flatten (matop (\a b -> if (f64.abs (a - b)) < 0.1 then 1 else 0) predictions test_labels))
-  in ncorrect * 100 / f64.i64 (length (flatten test_labels))
+  let ncorrect = f64.sum (flatten (matop (\a b -> if (f64.abs (a - b)) < 0.0001 then 1 else 0) predictions test_labels))
+  let total = f64.i64 (length (flatten test_labels))
+  let success_percent = ncorrect * 100 / total
+  in [success_percent, ncorrect, total]
 
--- > predictability (add_bias (parse_images ($loadbytes "data/train-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/train-labels-idx1-ubyte"))) (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
+-- > predictability (add_bias (parse_images ($loadbytes "data/train-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/train-labels-idx1-ubyte"))) (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte"))) 100
 
 --
 -- ==
