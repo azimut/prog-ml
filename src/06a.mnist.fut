@@ -56,7 +56,7 @@ def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (l
 def encode_labels [n] (labels: [n]f64) : [n][1]f64 =
   -- see: https://futhark.readthedocs.io/en/latest/error-index.html#nonconstructive-entry
   let labels = labels :> [n * 1]f64
-  let is_five = map (\label -> if label == 5 then 1 else 0) labels
+  let is_five = map (\label -> if label > 4.9 && label < 5.1 then 1 else 0) labels
   in unflatten is_five
 
 def add_bias [n] [m] (images: [n][m]f64) : [n][1 + m]f64 =
@@ -74,7 +74,7 @@ def current_loss (features: [][]f64) (labels: [][1]f64) : f64 =
   let weights = train features labels 100 1e-5
   in loss features labels weights
 
--- > current_loss (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
+-- > current_loss (add_bias (parse_images ($loadbytes "data/train-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/train-labels-idx1-ubyte")))
 
 -- ## Picture of final weights
 
@@ -87,7 +87,7 @@ def draw_weights (features: [][]f64) (labels: [][1]f64) : [][]f64 =
 
 -- > :img draw_weights (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
 
--- ## Animate the whole learning process
+-- ## Animation of the whole learning process
 
 def animate_weights (features: [][]f64) (labels: [][1]f64) (lrate: f64) (weights: [][1]f64) : ([][]f64, [][1]f64) =
   let fweights = flatten weights
@@ -99,6 +99,23 @@ def animate_weights (features: [][]f64) (labels: [][1]f64) (lrate: f64) (weights
 -- > :video (animate_weights (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte"))) 1e-5, init_weights 785i64, 100i64);
 -- fps: 24
 -- format: gif
+
+-- ## Measure model against test data
+
+def classify [n] [m] (feats: [n][m]f64) (weights: [m][1]f64) : [n][1]f64 =
+  matunary (f64.round) (forward feats weights)
+
+def predictability [m]
+                   (train_features: [][m]f64)
+                   (train_labels: [][1]f64)
+                   (test_features: [][m]f64)
+                   (test_labels: [][1]f64) : f64 =
+  let weights = train train_features train_labels 100 1e-5
+  let predictions = classify test_features weights
+  let ncorrect = f64.sum (flatten (matop (\a b -> if (f64.abs (a - b)) < 0.1 then 1 else 0) predictions test_labels))
+  in ncorrect * 100 / f64.i64 (length (flatten test_labels))
+
+-- > predictability (add_bias (parse_images ($loadbytes "data/train-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/train-labels-idx1-ubyte"))) (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
 
 --
 -- ==
