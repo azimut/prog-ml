@@ -51,6 +51,25 @@ def loss [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f
   let second_term = matop (*) (matunary (1 -) truths) (matunary (f64.log) y_hat)
   in matadd first_term second_term |> flatten |> average |> f64.neg
 
+-- ## Measure model against test data
+
+def predictability [m]
+                   (train_features: [][m]f64)
+                   (train_labels: [][1]f64)
+                   (test_features: [][m]f64)
+                   (test_labels: [][1]f64)
+                   (iterations: i64) : []f64 =
+  let weights = train train_features train_labels iterations 0.001
+  let predictions = classify test_features weights
+  let ncorrect = f64.sum (flatten (matop (\a b -> if (f64.abs (a - b)) < 0.0001 then 1 else 0) predictions test_labels))
+  let total = f64.i64 (length (flatten test_labels))
+  let success_percent = ncorrect * 100 / total
+  in [success_percent, ncorrect, total]
+
+-- > predictability (add_bias features) truths (add_bias features) truths 10000
+
+-- > predictability (add_bias features) truths (add_bias features) truths 100000
+
 -- ## Plots
 
 def xs = iota (length (flatten truths))
