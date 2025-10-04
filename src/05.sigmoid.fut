@@ -24,10 +24,13 @@ def gradient [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64)
 def init_weights (m: i64) : [m][1]f64 =
   unflatten ((replicate m 0.0) :> [m * 1]f64)
 
+def train_step [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (lrate: f64) (weights: [m][1]f64) : [m][1]f64 =
+  matsub weights (matsmul (gradient features truths weights) lrate)
+
 def train [n] [m] (features: [n][m]f64) (truths: [n][1]f64) (iterations: i64) (lrate: f64) : [m][1]f64 =
   loop weights = init_weights m
   for _i < iterations do
-    matsub weights (matsmul (gradient features truths weights) lrate)
+    train_step features truths lrate weights
 
 def add_bias [n] [m] (features: [n][m]f64) : [n][1 + m]f64 =
   transpose ([(replicate n 1.0)] ++ (transpose features))
@@ -51,6 +54,15 @@ def loss [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f
   let second_term = matop (*) (matunary (1 -) truths) (matunary (f64.log) y_hat)
   in matadd first_term second_term |> flatten |> average |> f64.neg
 
+def current_losses [m] (features: [][m]f64) (labels: [][1]f64) : ([]i64, []f64) =
+  let (_, losses) =
+    loop (weights, losses) = (init_weights m, [])
+    for _i < 10000 do
+      (train_step features labels 0.001 weights, losses ++ [loss features labels weights])
+  in (indices losses, losses)
+
+-- > :plot2d current_losses (add_bias features) truths
+
 -- ## Measure model against test data
 
 def predictability [m]
@@ -64,7 +76,7 @@ def predictability [m]
   let ncorrect = f64.sum (flatten (matop (\a b -> if (f64.abs (a - b)) < 0.0001 then 1 else 0) predictions test_labels))
   let total = f64.i64 (length (flatten test_labels))
   let success_percent = ncorrect * 100 / total
-  in [success_percent, ncorrect, total]
+  in [success_percent, ncorrect, total, loss train_features train_labels weights]
 
 -- > predictability (add_bias features) truths (add_bias features) truths 10000
 
