@@ -70,11 +70,13 @@ def loss [n] [m] (feats: [n][m]f64) (truths: [n][1]f64) (weights: [m][1]f64) : f
   let second_term = matop (*) (matunary (1 -) truths) (matunary (f64.log) y_hat)
   in matadd first_term second_term |> flatten |> average |> f64.neg
 
-def main (features: [][]f64) (labels: [][1]f64) : f64 =
+def current_loss (features: [][]f64) (labels: [][1]f64) : f64 =
   let weights = train features labels 100 1e-5
   in loss features labels weights
 
--- > main (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
+-- > current_loss (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
+
+-- ## Picture of final weights
 
 def draw_weights (features: [][]f64) (labels: [][1]f64) : [][]f64 =
   let weights = train features labels 100 1e-5
@@ -84,6 +86,8 @@ def draw_weights (features: [][]f64) (labels: [][1]f64) : [][]f64 =
   in unflatten ((map ((interpolate min_weight max_weight 0 1) >-> (1 -)) fweights[1:]) :> [28 * 28]f64)
 
 -- > :img draw_weights (add_bias (parse_images ($loadbytes "data/t10k-images-idx3-ubyte"))) (encode_labels (parse_labels ($loadbytes "data/t10k-labels-idx1-ubyte")))
+
+-- ## Animate the whole learning process
 
 def animate_weights (features: [][]f64) (labels: [][1]f64) (lrate: f64) (weights: [][1]f64) : ([][]f64, [][1]f64) =
   let fweights = flatten weights
